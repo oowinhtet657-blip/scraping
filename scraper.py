@@ -80,22 +80,17 @@ CONFIG = {
 
     "groups": [
         {
-            "name": "Grup 1 - HP Second",
-            "url": "https://www.facebook.com/groups/513315927639144?locale=id_ID",
-            "max_posts": 300
+            "name": "581253823794105",
+            "url": "https://www.facebook.com/groups/581253823794105?locale=id_ID",
+            "max_posts": 400
         },
         
-         {
-            "name": "Grup 2 - Gadget Bekas",
-            "url": "https://www.facebook.com/groups/2031638100443573?locale=id_ID",
-           "max_posts": 300
-     }
     ],
 
-    "scroll_pause": (2.5, 3.5),
+    "scroll_pause": (4.0, 6.0),  # Scroll lambat & soft
     "headless":     False,
     "output_dir":   "output",
-    "save_json":    True,
+    "save_json":    False,  
     "save_excel":   True,
 }
 
@@ -165,21 +160,24 @@ class PostParser:
 
     @staticmethod
     def _extract_wa(text):
-        # Pattern 1: Dengan prefix (wa, whatsapp, hub, minat, kontak) — support kurung & dash
+        # Pattern 1: Dengan prefix (wa, whatsapp, hub, minat, kontak) — support kurung, dash & titik
         m = re.search(
-            r"(?:wa|whatsapp|hub|minat|kontak)\s*[:\-]?\s*((?:08|62|\+62)[\d\s\-()]{8,14})",
+            r"(?:wa|whatsapp|hub|minat|kontak)\s*[:\-]?\s*((?:08|62|\+62)[\d\s\-().]{8,14})",
             text, re.IGNORECASE
         )
-        # Pattern 2: Langsung nomor — jika pattern 1 tidak ketemu
+        # Pattern 2: Langsung nomor dengan titik/dash/kurung (misal: 0852.7070.5368)
+        if not m:
+            m = re.search(r"((?:08|62|\+62)[\d.]{9,13})", text)
+        # Pattern 3: Langsung nomor hanya angka
         if not m:
             m = re.search(r"((?:08|62|\+62)[\d]{9,13})", text)
-        # Pattern 3: Nomor dengan kurung/dash (tanpa prefix) — sebagai fallback
+        # Pattern 4: Nomor dengan kurung/dash/titik (tanpa prefix) — sebagai fallback
         if not m:
-            m = re.search(r"((?:08|62|\+62)[\d\s\-()]{9,14})", text)
+            m = re.search(r"((?:08|62|\+62)[\d\s\-().]{9,14})", text)
         
         if m:
-            # Clean: hapus semua spaces, dashes, dan kurung — tinggal angka & +
-            return re.sub(r"[\s\-()\[\]]", "", m.group(1))
+            # Clean: hapus semua spaces, dashes, kurung, dan titik — tinggal angka & +
+            return re.sub(r"[\s\-()\[\].]", "", m.group(1))
         return ""
 
     @staticmethod
@@ -273,61 +271,35 @@ class FBGroupScraper:
 
             context = browser.contexts[0] if browser.contexts else await browser.new_context()
             
-            print(f"\n{'='*60}")
-            print(f"✅ MODE PARALLEL: Buka {len(self.config['groups'])} tab sekaligus")
-            print(f"{'='*60}\n")
-            
-            # ✅ Buat pages untuk semua grup
-            pages = []
-            for group in self.config["groups"]:
-                page = await context.new_page()
-                pages.append(page)
-            
-            # ✅ Verify login 1x (gunakan page pertama)
-            await self._verify_login(pages[0])
-            
-            # ✅ PARALLEL: Scrape semua grup bersamaan
-            tasks = []
-            for idx, (page, group) in enumerate(zip(pages, self.config["groups"]), 1):
-                task = self._scrape_single_group(page, group, idx)
-                tasks.append(task)
-            
-            # Tunggu semua selesai
-            results = await asyncio.gather(*tasks)
-            
-            # Collect semua results
+            # ✅ LOOP: Scrape setiap grup berurutan
             all_posts = []
-            for posts_list in results:
-                all_posts.extend(posts_list)
+            for idx, group in enumerate(self.config["groups"], 1):
+                print(f"\n{'='*60}")
+                print(f"[{idx}/{len(self.config['groups'])}] Mulai scraping: {group['name']}")
+                print(f"{'='*60}\n")
+
+                page = context.pages[0] if context.pages else await context.new_page()
+                self.config["group_url"] = group["url"]
+                self.config["max_posts"] = group["max_posts"]
+                self.posts = []  
+                
+                if idx == 1:
+                    await self._verify_login(page)
+            
+                await self._scrape_group(page)
+
+                self._save_results(group["name"])
+                all_posts.extend(self.posts)
+                
+                print(f"\n✅ Selesai: {group['name']} ({len(self.posts)} posts)")
             
             print(f"\n{'='*60}")
-            print(f"✅ SELESAI SEMUA GRUP SECARA PARALLEL. Total: {len(all_posts)} posts")
+            print(f"✅ SELESAI SEMUA GRUP. Total: {len(all_posts)} posts")
             print(f"{'='*60}\n")
             
             self.posts = all_posts
         
         return self.posts
-
-    async def _scrape_single_group(self, page, group: dict, idx: int) -> list[dict]:
-        """Scrape satu grup dalam task terpisah (parallel)."""
-        print(f"\n[Tab {idx}] Mulai scraping: {group['name']}")
-        
-        # Buat instance scraper lokal untuk grup ini (avoid race condition)
-        scraper_instance = FBGroupScraper(self.config)
-        scraper_instance.posts = []
-        scraper_instance.config["group_url"] = group["url"]
-        scraper_instance.config["max_posts"] = group["max_posts"]
-        
-        # Scrape dengan instance lokal
-        await scraper_instance._scrape_group(page)
-        
-        # Save hasil
-        saved_posts = scraper_instance.posts.copy()
-        scraper_instance._save_results(group["name"])
-        
-        print(f"[Tab {idx}] ✅ Selesai: {group['name']} ({len(scraper_instance.posts)} posts)")
-        
-        return saved_posts
 
     def _is_debug_port_open(self, port: int) -> bool:
         """Cek apakah Chrome sudah berjalan dengan remote debug port."""
@@ -360,7 +332,7 @@ class FBGroupScraper:
             "--no-first-run",
             "--no-default-browser-check",
             "--disable-blink-features=AutomationControlled",
-            "about:blank",  # Buka halaman kosong, URL grup akan di-buka di loop
+            "about:blank", 
         ]
 
         try:
@@ -384,7 +356,7 @@ class FBGroupScraper:
                 print(f"[Browser] ✅ Chrome siap di port {port}.")
                 return
             attempt += 1
-            if attempt % 6 == 0:  # log tiap 3 detik
+            if attempt % 6 == 0:  
                 elapsed = int(time.time() - (deadline - timeout))
                 print(f"[Browser] Masih menunggu... ({elapsed}s)")
             await asyncio.sleep(0.5)
@@ -511,16 +483,23 @@ class FBGroupScraper:
 
         seen_texts = set()
         scroll_attempts = 0
-        max_scroll_without_new = 8
+        max_scroll_without_new = 5 
 
         print(f"[Scraper] Target: {self.config['max_posts']} postingan. Mulai scroll...")
 
         while len(self.posts) < self.config["max_posts"]:
 
-            clicked = await page.evaluate("window.__fbClickExpand ? window.__fbClickExpand() : 0")
-            if clicked > 0:
-                print(f"[Expand] Klik {clicked} tombol 'See more'")
-                await self._human_delay(1.0, 1.8)  
+            clicked = True
+            total_clicks = 0
+            while clicked:
+                clicked = await page.evaluate("window.__fbClickExpand ? window.__fbClickExpand() : 0")
+                if clicked > 0:
+                    total_clicks += clicked
+                    print(f"[Expand] Klik {clicked} tombol 'See more'")
+                    await self._human_delay(0.8, 1.2) 
+                    
+            if total_clicks > 0:
+                print(f"[Expand] Total {total_clicks} klik see more...")
    
             new_found = await self._extract_posts(page, seen_texts)
 
@@ -531,9 +510,10 @@ class FBGroupScraper:
                     break
             else:
                 scroll_attempts = 0
-                print(f"[Scraper] Total terkumpul: {len(self.posts)}/{self.config['max_posts']}")
+                wa_count = sum(1 for p in self.posts if p.get('nomor_wa'))
+                print(f"[Scraper] Total-Post: {len(self.posts)}/{self.config['max_posts']} | Total-nomor: {wa_count}")
 
-            await page.evaluate("window.scrollBy(0, window.innerHeight * 2)")
+            await page.evaluate("window.scrollBy(0, window.innerHeight * 0.75)")
             pause = random.uniform(*self.config["scroll_pause"])
             await asyncio.sleep(pause)
 
@@ -622,6 +602,10 @@ class FBGroupScraper:
         """Jeda acak seperti manusia."""
         await asyncio.sleep(random.uniform(min_s, max_s))
 
+
+# ─────────────────────────────────────────────
+# ENTRY POINT
+# ─────────────────────────────────────────────
 if __name__ == "__main__":
     scraper = FBGroupScraper(CONFIG)
     asyncio.run(scraper.run())
