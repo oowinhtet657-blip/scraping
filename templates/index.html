@@ -257,6 +257,15 @@
             color: #c00000;
         }
 
+        .status.stopped {
+            display: block;
+            border-top: 2px solid #808080;
+            border-left: 2px solid #808080;
+            border-right: 2px solid #dfdfdf;
+            border-bottom: 2px solid #dfdfdf;
+            color: #cc7700;
+        }
+
         .terminal-output {
             white-space: pre-wrap;
             word-break: break-all;
@@ -449,6 +458,16 @@
         .icon {
             margin-right: 2px;
         }
+
+        #btnStop {
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        #btnStop:hover:not(:disabled) {
+            background: #800000;
+            border-color: #800000;
+        }
     </style>
 </head>
 <body>
@@ -521,6 +540,7 @@
                     Mulai Scraping
                     </button>
                     <button id="btnReset">Reset Form</button>
+                    <button id="btnStop" style="display: none; background: #c00000; border-color: #c00000;">⏹ STOP</button>
                 </div>
 
                 <div class="status" id="statusMessage"></div>
@@ -567,6 +587,7 @@
     <script>
         let currentResults = [];
         let terminalLines = [];
+        let scrapeAbortController = null;
 
         // Format currency
         function formatHarga(harga) {
@@ -628,6 +649,14 @@
                     <div class="terminal-output"></div>
                 `;
                 addTerminalLine('[ERROR] ' + message);
+            } else if (type === 'stopped') {
+                el.innerHTML = `
+                    <div class="status-header">
+                        <span style="color: #cc7700; font-weight: bold;">⏹</span>
+                        <div class="status-indicator" style="color: #cc7700;">Dihentikan</div>
+                    </div>
+                    <div class="terminal-output"></div>
+                `;
             }
         }
 
@@ -723,7 +752,14 @@
             }
 
             const btn = document.getElementById('btnScrape');
+            const btnStop = document.getElementById('btnStop');
+            const btnReset = document.getElementById('btnReset');
             btn.disabled = true;
+            btnReset.disabled = true;
+            btnStop.style.display = 'block';
+
+            // Create new AbortController for this scrape
+            scrapeAbortController = new AbortController();
 
             try {
                 // Show status box
@@ -743,7 +779,8 @@
                 const response = await fetch('/api/scrape', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url, max_posts: maxPosts, debug_port: debugPort })
+                    body: JSON.stringify({ url, max_posts: maxPosts, debug_port: debugPort }),
+                    signal: scrapeAbortController.signal
                 });
 
                 const data = await response.json();
@@ -763,14 +800,26 @@
                 }, 2500);
 
             } catch (err) {
-                setStatus(err.message, 'error');
+                if (err.name === 'AbortError') {
+                    setStatus('Scraping dihentikan oleh user', 'stopped');
+                } else {
+                    setStatus(err.message, 'error');
+                }
             } finally {
                 btn.disabled = false;
+                btnReset.disabled = false;
+                btnStop.style.display = 'none';
+                scrapeAbortController = null;
             }
         });
 
         // Reset button
         document.getElementById('btnReset').addEventListener('click', () => {
+            // Stop scraping if in progress
+            if (scrapeAbortController) {
+                scrapeAbortController.abort();
+            }
+
             // Reset form fields
             document.getElementById('groupUrl').value = 'https://www.facebook.com/groups/#?locale=id_ID';
             document.getElementById('maxPosts').value = 100;
@@ -791,9 +840,18 @@
             
             // Reset button state
             document.getElementById('btnScrape').disabled = false;
+            document.getElementById('btnStop').style.display = 'none';
             
             // Scroll to top
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Stop button
+        document.getElementById('btnStop').addEventListener('click', () => {
+            if (scrapeAbortController) {
+                scrapeAbortController.abort();
+                addTerminalLine('[STOP] Scraping stopped by user');
+            }
         });
 
         // Download Excel
