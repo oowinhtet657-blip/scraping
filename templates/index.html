@@ -280,6 +280,59 @@
             50%, 100% { opacity: 0; }
         }
 
+        .status-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #c0c0c0;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: bold;
+            color: #000000;
+            font-size: 11px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #107c10;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(16, 124, 16, 0.7);
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .dots {
+            display: inline-block;
+            min-width: 15px;
+        }
+
+        .dots::after {
+            content: '.';
+            animation: dots-animation 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots-animation {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
+
         .results-table {
             width: 100%;
             border-collapse: collapse;
@@ -533,8 +586,11 @@
 
         function updateTerminalOutput() {
             const el = document.getElementById('statusMessage');
-            const output = terminalLines.map(line => `> ${line}`).join('\n');
-            el.querySelector('.terminal-output').textContent = output;
+            const terminalEl = el.querySelector('.terminal-output');
+            if (terminalEl) {
+                const output = terminalLines.map(line => `> ${line}`).join('\n');
+                terminalEl.textContent = output;
+            }
         }
 
         // Update status message
@@ -544,11 +600,33 @@
             
             if (type === 'loading') {
                 terminalLines = [];
+                el.innerHTML = `
+                    <div class="status-header">
+                        <div class="status-dot"></div>
+                        <div class="status-indicator">Running<span class="dots"></span></div>
+                    </div>
+                    <div class="terminal-output"></div>
+                    <div class="cursor"></div>
+                `;
                 addTerminalLine('[INIT] Initializing Facebook Group Scraper...');
                 addTerminalLine('[CONNECT] Connecting to Chrome Debug Port...');
             } else if (type === 'success') {
+                el.innerHTML = `
+                    <div class="status-header">
+                        <span style="color: #107c10; font-weight: bold;">✓</span>
+                        <div class="status-indicator" style="color: #107c10;">Selesai</div>
+                    </div>
+                    <div class="terminal-output"></div>
+                `;
                 addTerminalLine('[SUCCESS] ' + message);
             } else if (type === 'error') {
+                el.innerHTML = `
+                    <div class="status-header">
+                        <span style="color: #c00000; font-weight: bold;">✕</span>
+                        <div class="status-indicator" style="color: #c00000;">Error</div>
+                    </div>
+                    <div class="terminal-output"></div>
+                `;
                 addTerminalLine('[ERROR] ' + message);
             }
         }
@@ -650,12 +728,6 @@
             try {
                 // Show status box
                 const statusEl = document.getElementById('statusMessage');
-                statusEl.innerHTML = `
-                    <div class="terminal-output"></div>
-                    <div class="cursor"></div>
-                `;
-                statusEl.className = 'status loading';
-
                 setStatus('Memulai scraping...', 'loading');
                 
                 // Simulate initial output
