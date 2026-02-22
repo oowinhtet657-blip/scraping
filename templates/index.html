@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook Group Scraper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Windows 95/98 Color Scheme */
+        body {
+            font-family: "MS Sans Serif", "MS Shell Dlg", "Segoe UI", sans-serif;
+            background: #252525;
+            color: #000000;
+            min-height: 100vh;
+            padding: 8px;
+            overflow-x: hidden;
+        }
+
+        /* Window container with beveled borders */
+        .titlebar {
+            background: linear-gradient(to right, #801e00, #1084d7);
+            border-top: 2px solid #dfdfdf;
+            border-left: 2px solid #dfdfdf;
+            border-right: 2px solid #808080;
+            border-bottom: 2px solid #808080;
+            padding: 2px 2px 2px 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4px;
+            font-size: 10px;
+            height: 20px;
+        }
+
+        .titlebar-icon {
+            font-size: 11px;
+            color: white;
+        }
+
+        .titlebar-title {
+            font-size: 11px;
+            font-weight: bold;
+            color: white;
+            text-transform: none;
+            letter-spacing: 0px;
+            flex: 1;
+            user-select: none;
+        }
+
+        .titlebar-buttons {
+            display: flex;
+            gap: 2px;
+        }
+
+        .titlebar-btn {
+            width: 16px;
+            height: 14px;
+            background: #c0c0c0;
+            border-top: 1px solid #dfdfdf;
+            border-left: 1px solid #dfdfdf;
+            border-right: 1px solid #808080;
+            border-bottom: 1px solid #808080;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: black;
+        }
+
+        .titlebar-btn:active {
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #dfdfdf;
+            border-bottom: 1px solid #dfdfdf;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0;
+            padding: 4px;
+        }
+
+        /* Window-style card */
+        .card {
+            background: #c0c0c0;
+            border-top: 2px solid #dfdfdf;
+            border-left: 2px solid #dfdfdf;
+            border-right: 2px solid #808080;
+            border-bottom: 2px solid #808080;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(to right,  #801e00, #1084d7);
+            border-bottom: 2px solid #ffffff;
+            padding: 2px 2px;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            user-select: none;
+            height: 18px;
+        }
+
+        .card-body {
+            padding: 6px;
+            background: #c0c0c0;
+        }
+
+        .form-group {
+            margin-bottom: 8px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 2px;
+            font-weight: normal;
+            color: #000000;
+            font-size: 11px;
+            text-transform: none;
+            letter-spacing: 0px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 3px 2px;
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #dfdfdf;
+            border-bottom: 1px solid #dfdfdf;
+            background: #ffffff;
+            font-size: 11px;
+            font-family: "MS Sans Serif", sans-serif;
+            color: #000000;
+            transition: all 0.1s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        textarea:focus {
+            outline: none;
+            border-top: 1px solid #dfdfdf;
+            border-left: 1px solid #dfdfdf;
+            border-right: 1px solid #808080;
+            border-bottom: 1px solid #808080;
+        }
+
+        textarea {
+            min-height: 70px;
+            resize: vertical;
+            font-family: "Courier New", monospace;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 4px;
+            margin-top: 12px;
+        }
+
+        button {
+            padding: 3px 12px;
+            border-top: 2px solid #dfdfdf;
+            border-left: 2px solid #dfdfdf;
+            border-right: 2px solid #808080;
+            border-bottom: 2px solid #808080;
+            background: #c0c0c0;
+            color: #000000;
+            font-size: 11px;
+            font-weight: normal;
+            font-family: "MS Sans Serif", sans-serif;
+            cursor: pointer;
+            transition: all 0.1s;
+            text-transform: none;
+            letter-spacing: 0px;
+            min-width: 75px;
+            height: 23px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button:hover:not(:disabled) {
+            background: #c0c0c0;
+        }
+
+        button:active:not(:disabled) {
+            border-top: 2px solid #808080;
+            border-left: 2px solid #808080;
+            border-right: 2px solid #dfdfdf;
+            border-bottom: 2px solid #dfdfdf;
+        }
+
+        .btn-primary {
+            flex: 1;
+        }
+
+        button:disabled {
+            color: #dfdfdf;
+            text-shadow: 1px 1px #808080;
+            cursor: not-allowed;
+        }
+
+        .status {
+            padding: 4px;
+            margin: 8px 0;
+            display: none;
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #dfdfdf;
+            border-bottom: 1px solid #dfdfdf;
+            font-size: 11px;
+            font-family: "Courier New", monospace;
+            background: #ffffff;
+            color: #000000;
+            min-height: 60px;
+        }
+
+        .status.loading {
+            display: block;
+            border-top: 2px solid #808080;
+            border-left: 2px solid #808080;
+            border-right: 2px solid #dfdfdf;
+            border-bottom: 2px solid #dfdfdf;
+        }
+
+        .status.success {
+            display: block;
+            border-top: 2px solid #808080;
+            border-left: 2px solid #808080;
+            border-right: 2px solid #dfdfdf;
+            border-bottom: 2px solid #dfdfdf;
+        }
+
+        .status.error {
+            display: block;
+            border-top: 2px solid #808080;
+            border-left: 2px solid #808080;
+            border-right: 2px solid #dfdfdf;
+            border-bottom: 2px solid #dfdfdf;
+            color: #c00000;
+        }
+
+        .terminal-output {
+            white-space: pre-wrap;
+            word-break: break-all;
+            line-height: 1.4;
+            min-height: 50px;
+            font-family: "Courier New", monospace;
+            font-size: 11px;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 6px;
+            height: 12px;
+            background: #000000;
+            animation: blink 1s infinite;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+            font-size: 11px;
+            font-family: "MS Sans Serif", sans-serif;
+            background: #c0c0c0;
+        }
+
+        .results-table thead {
+            background: #c0c0c0;
+        }
+
+        .results-table th {
+            padding: 2px 4px;
+            text-align: left;
+            font-weight: bold;
+            color: #000000;
+            border-top: 1px solid #dfdfdf;
+            border-left: 1px solid #dfdfdf;
+            border-right: 1px solid #808080;
+            border-bottom: 1px solid #808080;
+        }
+
+        .results-table td {
+            padding: 2px 4px;
+            border-top: 1px solid #dfdfdf;
+            border-left: 1px solid #dfdfdf;
+            border-right: 1px solid #808080;
+            border-bottom: 1px solid #808080;
+            color: #000000;
+        }
+
+        .results-table tbody tr {
+            background: #c0c0c0;
+        }
+
+        .results-table tbody tr:hover {
+            background: #c0c0c0;
+        }
+
+        .results-container {
+            display: none;
+        }
+
+        .results-container.show {
+            display: block;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .stat-box {
+            background: #c0c0c0;
+            padding: 6px;
+            border-top: 2px solid #dfdfdf;
+            border-left: 2px solid #dfdfdf;
+            border-right: 2px solid #808080;
+            border-bottom: 2px solid #808080;
+            text-align: center;
+        }
+
+        .stat-box .value {
+            font-size: 14px;
+            font-weight: bold;
+            color: #000000;
+        }
+
+        .stat-box .label {
+            font-size: 10px;
+            color: #000000;
+            margin-top: 2px;
+            text-transform: none;
+            letter-spacing: 0px;
+        }
+
+        .table-container {
+            overflow: auto;
+            max-height: 400px;
+            border-top: 2px solid #808080;
+            border-left: 2px solid #808080;
+            border-right: 2px solid #dfdfdf;
+            border-bottom: 2px solid #dfdfdf;
+        }
+
+        @media (max-width: 768px) {
+            .input-group {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .container {
+                padding: 4px;
+            }
+        }
+
+        .helper-text {
+            font-size: 10px;
+            color: #808080;
+            margin-top: 2px;
+        }
+
+        .icon {
+            margin-right: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Windows 95/98 Title Bar with Control Buttons -->
+    <div class="titlebar">
+        <span class="titlebar-icon">📋</span>
+        <span class="titlebar-title">SCRAPER.EXE</span>
+        <div class="titlebar-buttons">
+            <div class="titlebar-btn">_</div>
+            <div class="titlebar-btn">□</div>
+            <div class="titlebar-btn">✕</div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Input Card -->
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">📝</span> Konfigurasi Scraping
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="groupUrl">URL Facebook Group</label>
+                    <input 
+                        type="text" 
+                        id="groupUrl" 
+                        placeholder="https://www.facebook.com/groups/1262071423858059"
+                        value="https://www.facebook.com/groups/#?locale=id_ID"
+                    >
+                    <div class="helper-text">Pastikan Chrome sudah login & grup terbuka di browser</div>
+                </div>
+
+                <div class="input-group">
+                    <div class="form-group">
+                        <label for="maxPosts">Max Posts</label>
+                        <input 
+                            type="number" 
+                            id="maxPosts" 
+                            min="1" 
+                            max="500" 
+                            value="100"
+                        >
+                        <div class="helper-text">Jumlah postingan yang di-scrape (1-500)</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="debugPort">Chrome Debug Port</label>
+                        <input 
+                            type="number" 
+                            id="debugPort" 
+                            value="9222"
+                        >
+                        <div class="helper-text">Default: 9222 (sesuaikan jika berbeda)</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="exportName">Nama File Export (Opsional)</label>
+                    <input 
+                        type="text" 
+                        id="exportName" 
+                        placeholder="contoh: scrape_toko_hp"
+                        value="scrape_results"
+                    >
+                    <div class="helper-text">Nama file saat download (tanpa ekstensi, .xlsx atau .json ditambah otomatis)</div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" id="btnScrape">
+                    Mulai Scraping
+                    </button>
+                    <button id="btnReset">Reset Form</button>
+                </div>
+
+                <div class="status" id="statusMessage"></div>
+            </div>
+        </div>
+
+        <!-- Results Card -->
+        <div class="card results-container" id="resultsCard">
+            <div class="card-header">
+                <span class="icon">📊</span> Hasil Scraping
+            </div>
+            <div class="card-body">
+                <div class="stats" id="statsBox"></div>
+
+                <div class="table-container">
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Barang</th>
+                                <th>Harga</th>
+                                <th>BH %</th>
+                                <th>Garansi</th>
+                                <th>No WA</th>
+                                <th>TT/BT</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTable"></tbody>
+                    </table>
+                </div>
+
+                <div class="button-group" style="margin-top: 16px;">
+                    <button class="btn-primary" id="btnDownloadExcel">
+                         Download Excel
+                    </button>
+                    <button class="btn-primary" id="btnDownloadJSON">
+                         Download JSON
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentResults = [];
+        let terminalLines = [];
+
+        // Format currency
+        function formatHarga(harga) {
+            if (!harga) return '-';
+            return 'Rp ' + (harga).toLocaleString('id-ID');
+        }
+
+        // Terminal-like status update
+        function addTerminalLine(message) {
+            terminalLines.push(message);
+            // Keep only last 8 lines
+            if (terminalLines.length > 8) {
+                terminalLines.shift();
+            }
+            updateTerminalOutput();
+        }
+
+        function updateTerminalOutput() {
+            const el = document.getElementById('statusMessage');
+            const output = terminalLines.map(line => `> ${line}`).join('\n');
+            el.querySelector('.terminal-output').textContent = output;
+        }
+
+        // Update status message
+        function setStatus(message, type = 'loading') {
+            const el = document.getElementById('statusMessage');
+            el.className = `status ${type}`;
+            
+            if (type === 'loading') {
+                terminalLines = [];
+                addTerminalLine('[INIT] Initializing Facebook Group Scraper...');
+                addTerminalLine('[CONNECT] Connecting to Chrome Debug Port...');
+            } else if (type === 'success') {
+                addTerminalLine('[SUCCESS] ' + message);
+            } else if (type === 'error') {
+                addTerminalLine('[ERROR] ' + message);
+            }
+        }
+
+        // Clear status
+        function clearStatus() {
+            const el = document.getElementById('statusMessage');
+            el.className = 'status';
+            terminalLines = [];
+        }
+
+        // Simulate terminal output during scraping
+        function simulateScrapingOutput(totalPosts) {
+            const states = [
+                '[SCAN] Scanning DOM structure...',
+                '[EXPAND] Expanding "See More" posts...',
+                '[EXTRACT] Extracting post content...',
+                '[PARSE] Parsing with regex patterns...',
+                '[VALIDATE] Validating extracted data...',
+                `[COLLECT] Collected ${totalPosts} posts...`,
+                '[FINALIZE] Finalizing results...',
+                '[COMPLETE] Scraping completed successfully!'
+            ];
+
+            states.forEach((line, idx) => {
+                setTimeout(() => {
+                    addTerminalLine(line);
+                }, idx * 300);
+            });
+        }
+
+        // Display results
+        function displayResults(posts) {
+            currentResults = posts;
+
+            // Calculate stats
+            const statsBox = document.getElementById('statsBox');
+            const totalPosts = posts.length;
+            const withWA = posts.filter(p => p.nomor_wa).length;
+            const withHarga = posts.filter(p => p.harga).length;
+            const avgHarga = posts.filter(p => p.harga).reduce((s, p) => s + p.harga, 0) / withHarga || 0;
+
+            statsBox.innerHTML = `
+                <div class="stat-box">
+                    <div class="value">${totalPosts}</div>
+                    <div class="label">Total Posts</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value">${withWA}</div>
+                    <div class="label">Ada No WA</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value">${withHarga}</div>
+                    <div class="label">Ada Harga</div>
+                </div>
+                <div class="stat-box">
+                    <div class="value">${formatHarga(avgHarga)}</div>
+                    <div class="label">Harga Rata-rata</div>
+                </div>
+            `;
+
+            // Fill table
+            const tbody = document.getElementById('resultsTable');
+            tbody.innerHTML = posts.map((p, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td style="max-width: 150px;">${p.barang || '-'}</td>
+                    <td>${formatHarga(p.harga)}</td>
+                    <td>${p.kondisi_baterai ? p.kondisi_baterai + '%' : '-'}</td>
+                    <td>${p.garansi || '-'}</td>
+                    <td>${p.nomor_wa || '-'}</td>
+                    <td>${p.tt_bt || '-'}</td>
+                </tr>
+            `).join('');
+
+            // Show results card
+            document.getElementById('resultsCard').classList.add('show');
+        }
+
+        // Scrape button
+        document.getElementById('btnScrape').addEventListener('click', async () => {
+            const url = document.getElementById('groupUrl').value.trim();
+            const maxPosts = parseInt(document.getElementById('maxPosts').value);
+            const debugPort = parseInt(document.getElementById('debugPort').value);
+
+            if (!url) {
+                setStatus('URL tidak boleh kosong', 'error');
+                return;
+            }
+
+            if (maxPosts < 1 || maxPosts > 500) {
+                setStatus('Max posts harus 1-500', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btnScrape');
+            btn.disabled = true;
+
+            try {
+                // Show status box
+                const statusEl = document.getElementById('statusMessage');
+                statusEl.innerHTML = `
+                    <div class="terminal-output"></div>
+                    <div class="cursor"></div>
+                `;
+                statusEl.className = 'status loading';
+
+                setStatus('Memulai scraping...', 'loading');
+                
+                // Simulate initial output
+                setTimeout(() => {
+                    addTerminalLine('[BROWSER] Opening Chrome with debug port ' + debugPort);
+                    addTerminalLine('[LOGIN] Verifying Facebook login status...');
+                }, 200);
+
+                setTimeout(() => {
+                    addTerminalLine('[PAGE] Navigating to group URL...');
+                }, 600);
+
+                const response = await fetch('/api/scrape', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url, max_posts: maxPosts, debug_port: debugPort })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    setStatus(data.error, 'error');
+                    return;
+                }
+
+                // Show scraping output
+                simulateScrapingOutput(data.total_posts);
+
+                // Wait for animation then show success
+                setTimeout(() => {
+                    setStatus(`Selesai! ${data.total_posts} posts berhasil di-scrape`, 'success');
+                    displayResults(data.posts);
+                }, 2500);
+
+            } catch (err) {
+                setStatus(err.message, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        // Reset button
+        document.getElementById('btnReset').addEventListener('click', () => {
+            document.getElementById('groupUrl').value = 'https://www.facebook.com/groups/1262071423858059?locale=id_ID';
+            document.getElementById('maxPosts').value = 100;
+            document.getElementById('debugPort').value = 9222;
+            document.getElementById('exportName').value = 'scrape_results';
+            clearStatus();
+            document.getElementById('resultsCard').classList.remove('show');
+        });
+
+        // Download Excel
+        document.getElementById('btnDownloadExcel').addEventListener('click', async () => {
+            if (!currentResults.length) return;
+
+            const btn = document.getElementById('btnDownloadExcel');
+            btn.disabled = true;
+
+            try {
+                const exportName = document.getElementById('exportName').value.trim() || 'scrape_results';
+                const response = await fetch('/api/download/excel', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ posts: currentResults, filename: exportName })
+                });
+
+                if (!response.ok) throw new Error('Download failed');
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${exportName}.xlsx`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+
+            } catch (err) {
+                alert('Error: ' + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        // Download JSON
+        document.getElementById('btnDownloadJSON').addEventListener('click', async () => {
+            if (!currentResults.length) return;
+
+            const btn = document.getElementById('btnDownloadJSON');
+            btn.disabled = true;
+
+            try {
+                const exportName = document.getElementById('exportName').value.trim() || 'scrape_results';
+                const response = await fetch('/api/download/json', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ posts: currentResults, filename: exportName })
+                });
+
+                if (!response.ok) throw new Error('Download failed');
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${exportName}.json`;
+                a.click();
+                window.URL.revokeObjectURL(url);
+
+            } catch (err) {
+                alert('Error: ' + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        // Enter key to scrape
+        document.getElementById('groupUrl').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('btnScrape').click();
+        });
+    </script>
+</body>
+</html>

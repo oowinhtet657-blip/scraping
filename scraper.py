@@ -80,8 +80,8 @@ CONFIG = {
 
     "groups": [
         {
-            "name": "581253823794105",
-            "url": "https://www.facebook.com/groups/581253823794105?locale=id_ID",
+            "name": "1262071423858059",
+            "url": "https://www.facebook.com/groups/#?locale=id_ID",
             "max_posts": 400
         },
         

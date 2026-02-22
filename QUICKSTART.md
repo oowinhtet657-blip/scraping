@@ -213,4 +213,4 @@ GET /api/results/download/{id} → download Excel
 
 **Butuh bantuan? Refer ke README_WEBAPP.md untuk detail lengkap!**
 
-Happy coding! 🎉
+Happy coding!
