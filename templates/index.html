@@ -17,7 +17,7 @@
             background: #252525;
             color: #000000;
             min-height: 100vh;
-            padding: 8px;
+            padding: 15px;
             overflow-x: hidden;
         }
 
@@ -81,8 +81,8 @@
         }
 
         .container {
-            max-width: 900px;
-            margin: 0;
+            max-width: 910px;
+            margin: 0 auto;
             padding: 4px;
         }
 
@@ -95,6 +95,11 @@
             border-bottom: 2px solid #808080;
             margin-bottom: 12px;
             overflow: hidden;
+        }
+
+        .cards-grid .card {
+            width: 100%;
+            margin-bottom: 0;
         }
 
         .card-header {
@@ -172,6 +177,14 @@
             display: flex;
             gap: 4px;
             margin-top: 12px;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+            align-items: start;
         }
 
         button {
@@ -383,6 +396,40 @@
             background: #c0c0c0;
         }
 
+        .copy-btn {
+            padding: 2px 6px;
+            margin-left: 4px;
+            background: #c0c0c0;
+            border-top: 1px solid #dfdfdf;
+            border-left: 1px solid #dfdfdf;
+            border-right: 1px solid #808080;
+            border-bottom: 1px solid #808080;
+            font-size: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #000000;
+            transition: all 0.1s;
+            white-space: nowrap;
+        }
+
+        .copy-btn:active {
+            border-top: 1px solid #808080;
+            border-left: 1px solid #808080;
+            border-right: 1px solid #dfdfdf;
+            border-bottom: 1px solid #dfdfdf;
+        }
+
+        .copy-btn:disabled {
+            color: #dfdfdf;
+            cursor: not-allowed;
+        }
+
+        .wa-cell {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
         .results-container {
             display: none;
         }
@@ -431,6 +478,175 @@
             border-bottom: 2px solid #dfdfdf;
         }
 
+        /* Modal Styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #c0c0c0;
+            border-top: 2px solid #dfdfdf;
+            border-left: 2px solid #dfdfdf;
+            border-right: 2px solid #808080;
+            border-bottom: 2px solid #808080;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-titlebar {
+            background: linear-gradient(to right, #801e00, #1084d7);
+            color: white;
+            padding: 2px 4px;
+            font-size: 11px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 18px;
+        }
+
+        .modal-close {
+            background: #c0c0c0;
+            border: 1px solid #dfdfdf;
+            color: black;
+            font-size: 10px;
+            cursor: pointer;
+            width: 16px;
+            height: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-body {
+            padding: 8px;
+            overflow-y: auto;
+            flex: 1;
+            font-size: 11px;
+            font-family: "Courier New", monospace;
+        }
+
+        .duplicate-item {
+            margin-bottom: 8px;
+            padding: 4px;
+            border-top: 1px solid #dfdfdf;
+            border-left: 1px solid #dfdfdf;
+            border-right: 1px solid #808080;
+            border-bottom: 1px solid #808080;
+        }
+
+        .duplicate-number {
+            font-weight: bold;
+            color: #103075;
+        }
+
+        .duplicate-count {
+            color: #c00000;
+            font-weight: bold;
+        }
+
+        .duplicate-info {
+            font-size: 10px;
+            color: #606060;
+            margin-top: 2px;
+        }
+
+        .modal-footer {
+            padding: 8px;
+            border-top: 1px solid #dfdfdf;
+            display: flex;
+            gap: 4px;
+        }
+
+        .modal-footer button {
+            flex: 1;
+        }
+
+        /* Checker Result Styling */
+        .checker-result-box {
+            background: #c0c0c0;
+            border-top: 2px solid #808080;
+            border-left: 2px solid #808080;
+            border-right: 2px solid #dfdfdf;
+            border-bottom: 2px solid #dfdfdf;
+            padding: 8px;
+        }
+
+        .checker-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .checker-stat {
+            background: #c0c0c0;
+            padding: 6px;
+            border-top: 2px solid #dfdfdf;
+            border-left: 2px solid #dfdfdf;
+            border-right: 2px solid #808080;
+            border-bottom: 2px solid #808080;
+            text-align: center;
+        }
+
+        .checker-stat-value {
+            font-size: 14px;
+            font-weight: bold;
+            color: #000000;
+        }
+
+        .checker-stat-label {
+            font-size: 10px;
+            color: #000000;
+            margin-top: 2px;
+        }
+
+        .checker-section {
+            margin-bottom: 12px;
+        }
+
+        .checker-section-title {
+            font-weight: bold;
+            font-size: 11px;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #dfdfdf;
+        }
+
+        .checker-list {
+            font-family: "Courier New", monospace;
+            font-size: 11px;
+            background: #ffffff;
+            border: 1px solid #808080;
+            padding: 4px;
+            max-height: 150px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .checker-list-empty {
+            color: #107c10;
+            font-weight: bold;
+        }
+
         @media (max-width: 768px) {
             .input-group {
                 grid-template-columns: 1fr;
@@ -456,17 +672,30 @@
         }
 
         .icon {
-            margin-right: 2px;
         }
 
         #btnStop {
-            color: #ffffff;
+            color: #c00000;
+            font-weight: bold;
             cursor: pointer;
+            background: #c0c0c0;
+            border-top: 2px solid #dfdfdf;
+            border-left: 2px solid #dfdfdf;
+            border-right: 2px solid #808080;
+            border-bottom: 2px solid #808080;
         }
 
         #btnStop:hover:not(:disabled) {
-            background: #800000;
-            border-color: #800000;
+            background: #c0c0c0;
+            color: #c00000;
+        }
+
+        #btnStop:active:not(:disabled) {
+            border-top: 2px solid #808080;
+            border-left: 2px solid #808080;
+            border-right: 2px solid #dfdfdf;
+            border-bottom: 2px solid #dfdfdf;
+            color: #c00000;
         }
     </style>
 </head>
@@ -483,8 +712,10 @@
     </div>
 
     <div class="container">
-        <!-- Input Card -->
-        <div class="card">
+        <!-- Cards Grid (Side by Side) -->
+        <div class="cards-grid">
+            <!-- Input Card -->
+            <div class="card">
             <div class="card-header">
                 <span class="icon">📝</span> Konfigurasi Scraping
             </div>
@@ -525,7 +756,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="exportName">Nama File Export (Opsional)</label>
+                    <label for="exportName">Nama File (Opsional)</label>
                     <input 
                         type="text" 
                         id="exportName" 
@@ -540,17 +771,45 @@
                     Mulai Scraping
                     </button>
                     <button id="btnReset">Reset Form</button>
-                    <button id="btnStop" style="display: none; background: #c00000; border-color: #c00000;">⏹ STOP</button>
+                    <button id="btnStop" style="display: none;">⛔️ STOP</button>
                 </div>
 
                 <div class="status" id="statusMessage"></div>
             </div>
         </div>
 
+        <!-- Checker Card -->
+        <div class="card">
+            <div class="card-header">
+                <span class="icon">🔘</span> Cek Nomor
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label for="checkerInput">Paste Nomor  (1 nomor per baris):</label>
+                    <textarea 
+                        id="checkerInput" 
+                        placeholder="085381202202&#10;085237654321&#10;085381202202"
+                        style="min-height: 120px;"
+                    ></textarea>
+                    <div id="checkerCounter" style="margin-top: 8px; font-size: 12px; color: #666; text-align: right;">
+                        <span id="counterText">0 nomor terinput</span>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button class="btn-primary" id="btnCheckDuplikatChecker">Cek Duplikat</button>
+                    <button id="btnClearChecker">Clear</button>
+                </div>
+                
+                <div id="checkerResult" style="display: none; margin-top: 16px;"></div>
+            </div>
+        </div>
+        </div><!-- Close cards-grid -->
+
         <!-- Results Card -->
         <div class="card results-container" id="resultsCard">
             <div class="card-header">
-                <span class="icon">📊</span> Hasil Scraping
+                <span class="icon">📚</span> Hasil Scraping
             </div>
             <div class="card-body">
                 <div class="stats" id="statsBox"></div>
@@ -573,6 +832,9 @@
                 </div>
 
                 <div class="button-group" style="margin-top: 16px;">
+                    <button class="btn-primary" id="btnCopyAllWA" style="display: none;">
+                          Copy Nomor
+                    </button>
                     <button class="btn-primary" id="btnDownloadExcel">
                          Download Excel
                     </button>
@@ -719,20 +981,24 @@
 
             // Fill table
             const tbody = document.getElementById('resultsTable');
-            tbody.innerHTML = posts.map((p, i) => `
+            tbody.innerHTML = posts.map((p, i) => {
+                const waCell = p.nomor_wa ? `<div class="wa-cell">${p.nomor_wa}</div>` : '-';
+                return `
                 <tr>
                     <td>${i + 1}</td>
                     <td style="max-width: 150px;">${p.barang || '-'}</td>
                     <td>${formatHarga(p.harga)}</td>
                     <td>${p.kondisi_baterai ? p.kondisi_baterai + '%' : '-'}</td>
                     <td>${p.garansi || '-'}</td>
-                    <td>${p.nomor_wa || '-'}</td>
+                    <td>${waCell}</td>
                     <td>${p.tt_bt || '-'}</td>
                 </tr>
-            `).join('');
+            `;
+            }).join('');
 
-            // Show results card
+            // Show results card and Copy All button
             document.getElementById('resultsCard').classList.add('show');
+            document.getElementById('btnCopyAllWA').style.display = 'block';
         }
 
         // Scrape button
@@ -785,7 +1051,7 @@
                 const response = await fetch('/api/scrape', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url, max_posts: maxPosts, debug_port: debugPort }),
+                    body: JSON.stringify({ url, max_posts: maxPosts, debug_port: debugPort, export_name: document.getElementById('exportName').value.trim() || 'scrape_results' }),
                     signal: scrapeAbortController.signal
                 });
 
@@ -801,7 +1067,8 @@
 
                 // Wait for animation then show success
                 setTimeout(() => {
-                    setStatus(`Selesai! ${data.total_posts} posts berhasil di-scrape`, 'success');
+                    const exportMsg = data.export_filename ? ` | File Excel disimpan ke output/${data.export_filename}.xlsx` : '';
+                    setStatus(`Selesai! ${data.total_posts} posts berhasil di-scrape${exportMsg}`, 'success');
                     displayResults(data.posts);
                 }, 2500);
 
@@ -820,6 +1087,72 @@
                 scrapeAbortController = null;
             }
         });
+
+        // Copy all phone numbers function
+        function copyAllPhoneNumbers() {
+            if (!currentResults.length) {
+                alert('Tidak ada data untuk di-copy');
+                return;
+            }
+            
+            // Filter hanya nomor WA yang ada
+            const phoneNumbers = currentResults
+                .filter(p => p.nomor_wa)
+                .map(p => p.nomor_wa);
+            
+            if (!phoneNumbers.length) {
+                alert('Tidak ada nomor WA dalam hasil scraping');
+                return;
+            }
+            
+            // Join dengan newline untuk mudah di-paste
+            const textToCopy = phoneNumbers.join('\n');
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                // Show feedback
+                const tempMsg = document.createElement('div');
+                tempMsg.textContent = `${phoneNumbers.length} nomor WA dicopy!`;
+                tempMsg.style.position = 'fixed';
+                tempMsg.style.top = '20px';
+                tempMsg.style.right = '20px';
+                tempMsg.style.background = '#107c10';
+                tempMsg.style.color = '#ffffff';
+                tempMsg.style.padding = '8px 12px';
+                tempMsg.style.borderRadius = '4px';
+                tempMsg.style.fontSize = '12px';
+                tempMsg.style.zIndex = '9999';
+                tempMsg.style.fontFamily = '"MS Sans Serif", sans-serif';
+                document.body.appendChild(tempMsg);
+                setTimeout(() => tempMsg.remove(), 2000);
+            }).catch(err => {
+                console.error('Copy failed:', err);
+                alert('Gagal copy nomor');
+            });
+        }
+
+        // Copy to clipboard function
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Show feedback
+                const tempMsg = document.createElement('div');
+                tempMsg.textContent = 'Nomor WA dicopy!';
+                tempMsg.style.position = 'fixed';
+                tempMsg.style.top = '20px';
+                tempMsg.style.right = '20px';
+                tempMsg.style.background = '#107c10';
+                tempMsg.style.color = '#ffffff';
+                tempMsg.style.padding = '8px 12px';
+                tempMsg.style.borderRadius = '4px';
+                tempMsg.style.fontSize = '12px';
+                tempMsg.style.zIndex = '9999';
+                tempMsg.style.fontFamily = '"MS Sans Serif", sans-serif';
+                document.body.appendChild(tempMsg);
+                setTimeout(() => tempMsg.remove(), 2000);
+            }).catch(err => {
+                console.error('Copy failed:', err);
+                alert('Gagal copy nomor');
+            });
+        }
 
         // Reset button
         document.getElementById('btnReset').addEventListener('click', () => {
@@ -845,6 +1178,7 @@
             
             // Hide results card
             document.getElementById('resultsCard').classList.remove('show');
+            document.getElementById('btnCopyAllWA').style.display = 'none';
             
             // Reset button state
             document.getElementById('btnScrape').disabled = false;
@@ -869,7 +1203,8 @@
                     
                     if (response.ok) {
                         addTerminalLine('[STOP] Stop signal dikirim ke server');
-                        addTerminalLine('[STOP] Menghentikan scraping...');
+                        addTerminalLine('[STOP] Graceful shutdown - Chrome tetap terbuka');
+                        addTerminalLine('[STOP] Menghentikan scraping di checkpoint berikutnya...');
                     }
                 } catch (err) {
                     console.error('[Frontend] Error sending stop signal:', err);
@@ -879,6 +1214,194 @@
                 // Abort fetch juga dari sisi client
                 scrapeAbortController.abort();
             }
+        });
+
+        // Check duplicate from text area
+        // Fungsi untuk membersihkan nomor telepon ke format 08
+        function cleanPhoneNumber(phone) {
+            // Hapus semua karakter bukan angka
+            let cleaned = phone.replace(/\D/g, '');
+            
+            // Ubah +62 atau 62 di awal menjadi 0
+            if (cleaned.startsWith('62')) {
+                cleaned = '0' + cleaned.substring(2);
+            }
+            
+            // Pastikan dimulai dengan 0
+            if (!cleaned.startsWith('0')) {
+                cleaned = '0' + cleaned;
+            }
+            
+            // Hanya terima nomor dengan 11, 12, atau 13 digit
+            if (cleaned.length !== 11 && cleaned.length !== 12 && cleaned.length !== 13) {
+                return null; // Nomor tidak valid (bukan 11, 12, atau 13 digit)
+            }
+            
+            return cleaned;
+        }
+
+        function checkDuplicateFromChecker() {
+            const input = document.getElementById('checkerInput').value.trim();
+            
+            if (!input) {
+                alert('Masukkan nomor WA terlebih dahulu');
+                return;
+            }
+            
+            // Parse nomor dari text area, bersihkan, dan hapus duplikat format
+            const numbers = input
+                .split('\n')
+                .map(line => {
+                    const cleaned = cleanPhoneNumber(line);
+                    return cleaned; // Bisa null jika invalid
+                })
+                .filter(line => line !== null && line.length > 0); // Filter yang valid
+            
+            if (numbers.length === 0) {
+                alert('Tidak ada nomor WA yang valid');
+                return;
+            }
+            
+            // Count occurrences
+            const numberCount = {};
+            numbers.forEach(num => {
+                numberCount[num] = (numberCount[num] || 0) + 1;
+            });
+            
+            // Filter duplicates dan unique
+            const duplicates = Object.entries(numberCount)
+                .filter(([_, count]) => count > 1)
+                .sort((a, b) => b[1] - a[1]);
+                
+            const unique = Object.entries(numberCount)
+                .filter(([_, count]) => count === 1)
+                .map(([num, _]) => num)
+                .sort();
+            
+            // Display result
+            const resultDiv = document.getElementById('checkerResult');
+            let html = `
+                <div class="checker-result-box">
+                    <div class="checker-stats">
+                        <div class="checker-stat">
+                            <div class="checker-stat-value">${numbers.length}</div>
+                            <div class="checker-stat-label">Total Nomor</div>
+                        </div>
+                        <div class="checker-stat">
+                            <div class="checker-stat-value">${duplicates.length}</div>
+                            <div class="checker-stat-label">Duplikat</div>
+                        </div>
+                        <div class="checker-stat">
+                            <div class="checker-stat-value">${unique.length}</div>
+                            <div class="checker-stat-label">Unique</div>
+                        </div>
+                    </div>
+            `;
+            
+            // Duplicates section
+            if (duplicates.length > 0) {
+                html += `
+                    <div class="checker-section">
+                        <div class="checker-section-title">🔴 Nomor Duplikat (${duplicates.length}):</div>
+                        <div class="checker-list">${
+                            duplicates.map(([num, count]) => `${num} (${count}x)`).join('\n')
+                        }</div>
+                        <button class="btn-primary" style="margin-top: 6px; width: 100%;" onclick="copyCheckerList('${
+                            duplicates.map(([num, _]) => num).join('\\n')
+                        }')">Copy Duplikat</button>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="checker-section">
+                        <div class="checker-section-title checker-list-empty">✓ Tidak ada nomor duplikat</div>
+                    </div>
+                `;
+            }
+            
+            // Unique section
+            if (unique.length > 0) {
+                html += `
+                    <div class="checker-section">
+                        <div class="checker-section-title">🟢 Nomor Unique (${unique.length}):</div>
+                        <div class="checker-list">${unique.join('\n')}</div>
+                        <button class="btn-primary" style="margin-top: 6px; width: 100%;" onclick="copyCheckerList('${
+                            unique.join('\\n')
+                        }')">Copy Unique</button>
+                    </div>
+                `;
+            }
+            
+            html += `</div>`;
+            
+            resultDiv.innerHTML = html;
+            resultDiv.style.display = 'block';
+        }
+
+        // Copy from checker result
+        function copyCheckerList(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const tempMsg = document.createElement('div');
+                tempMsg.textContent = 'Nomor dicopy!';
+                tempMsg.style.position = 'fixed';
+                tempMsg.style.top = '20px';
+                tempMsg.style.right = '20px';
+                tempMsg.style.background = '#107c10';
+                tempMsg.style.color = '#ffffff';
+                tempMsg.style.padding = '8px 12px';
+                tempMsg.style.borderRadius = '4px';
+                tempMsg.style.fontSize = '12px';
+                tempMsg.style.zIndex = '9999';
+                tempMsg.style.fontFamily = '"MS Sans Serif", sans-serif';
+                document.body.appendChild(tempMsg);
+                setTimeout(() => tempMsg.remove(), 2000);
+            }).catch(err => {
+                console.error('Copy failed:', err);
+                alert('Gagal copy');
+            });
+        }
+
+        // Copy All WA button
+        document.getElementById('btnCopyAllWA').addEventListener('click', () => {
+            copyAllPhoneNumbers();
+        });
+
+        // Check Duplicate from Checker
+        document.getElementById('btnCheckDuplikatChecker').addEventListener('click', () => {
+            checkDuplicateFromChecker();
+        });
+
+        // Update counter nomor terinput
+        function updateCheckerCounter() {
+            const input = document.getElementById('checkerInput').value.trim();
+            const lines = input
+                .split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+            const count = lines.length;
+            
+            const counterText = document.getElementById('counterText');
+            if (count === 0) {
+                counterText.textContent = '0 nomor terinput';
+            } else if (count === 1) {
+                counterText.textContent = '1 nomor terinput';
+            } else {
+                counterText.textContent = count + ' nomor terinput';
+            }
+        }
+
+        // Event listener untuk textarea - update counter saat input/paste
+        document.getElementById('checkerInput').addEventListener('input', updateCheckerCounter);
+        document.getElementById('checkerInput').addEventListener('paste', () => {
+            setTimeout(updateCheckerCounter, 10); // Delay sebentar untuk paste
+        });
+
+        // Clear Checker
+        document.getElementById('btnClearChecker').addEventListener('click', () => {
+            document.getElementById('checkerInput').value = '';
+            document.getElementById('checkerResult').innerHTML = '';
+            document.getElementById('checkerResult').style.display = 'none';
+            updateCheckerCounter(); // Reset counter
         });
 
         // Download Excel

@@ -54,7 +54,8 @@ def scrape():
     {
         "url": "https://www.facebook.com/groups/...",
         "max_posts": 100,
-        "debug_port": 9222
+        "debug_port": 9222,
+        "export_name": "nama_file_export"
     }
     """
     global scraping_state
@@ -65,12 +66,19 @@ def scrape():
     
     try:
         # Lazy import
-        from scraper import FBGroupScraper
+        from scraper import FBGroupScraper, ExcelExporter
+        import re as regex
         
         data = request.get_json()
         url = data.get("url", "").strip()
         max_posts = int(data.get("max_posts", 100))
         debug_port = int(data.get("debug_port", 9222))
+        export_name = data.get("export_name", "scrape_results").strip()
+        
+        # Sanitize filename
+        export_name = regex.sub(r'[^a-zA-Z0-9_-]', '', export_name)
+        if not export_name:
+            export_name = "scrape_results"
 
         # Validasi
         if not url:
@@ -105,45 +113,71 @@ def scrape():
         # Reset state
         scraping_state["cancelled"] = False
         scraping_state["active"] = True
+        scraping_state["results"] = None
+        scraping_state["error"] = None
         
         # Jalankan scraper di thread terpisah
         def run_scraper():
             try:
+                print("[Web] 🧵 Starting scraper thread...")
                 scraper = FBGroupScraper(config, scraping_state)
                 posts = asyncio.run(scraper.run())
                 
                 if scraping_state["cancelled"]:
                     print("[Web] ⚠️  Scraping dibatalkan oleh user")
-                    return None
+                    scraping_state["results"] = None
+                    return
                 
-                return posts
+                print(f"[Web] ✅ Thread scraped {len(posts)} posts successfully")
+                scraping_state["results"] = posts
+                
             except Exception as e:
-                print(f"[Web] ❌ Error: {e}")
+                error_msg = str(e)
+                print(f"[Web] ❌ Thread error: {error_msg}")
                 import traceback
                 traceback.print_exc()
-                raise
+                scraping_state["error"] = error_msg
 
         scraper_thread = threading.Thread(target=run_scraper, daemon=False)
         scraper_thread.start()
         scraper_thread.join()  # Tunggu selesai
         
+        # Check hasil dari thread
         if scraping_state["cancelled"]:
             scraping_state["active"] = False
             return jsonify({
                 "error": "Scraping dibatalkan oleh user",
                 "cancelled": True
             }), 200
-
-        # Get results
-        scraper = FBGroupScraper(config, scraping_state)
-        posts = asyncio.run(scraper.run())
         
+        if scraping_state["error"]:
+            scraping_state["active"] = False
+            return jsonify({
+                "error": scraping_state["error"]
+            }), 500
+        
+        posts = scraping_state.get("results", [])
         scraping_state["active"] = False
+        
+        # Auto-save Excel file setelah scraping selesai
+        if posts:
+            try:
+                output_dir = "output"
+                if not os.path.exists(output_dir):
+                    os.makedirs(output_dir)
+                
+                filepath = os.path.join(output_dir, f"{export_name}.xlsx")
+                ExcelExporter.export(posts, filepath)
+                print(f"[Web] ✅ File Excel otomatis disimpan: {filepath}")
+            except Exception as e:
+                print(f"[Web] ⚠️  Gagal auto-save Excel: {e}")
+                # Jangan return error, tetap return results agar user bisa download manual
 
         return jsonify({
             "status": "success",
             "total_posts": len(posts),
-            "posts": posts
+            "posts": posts,
+            "export_filename": export_name
         }), 200
 
     except Exception as e:
@@ -156,29 +190,21 @@ def scrape():
 @app.route("/api/stop", methods=["POST"])
 def stop_scraping():
     """
-    Stop scraping yang sedang berjalan.
+    Stop scraping yang sedang berjalan tanpa kill Chrome.
+    Hanya set flag cancellation, biarkan scraper graceful shutdown.
     """
     global scraping_state
     
     if not scraping_state["active"]:
         return jsonify({"error": "Tidak ada scraping yang sedang berjalan"}), 400
     
-    print("\n[Web] 🛑 STOP signal diterima. Menghentikan scraping...")
+    print("\n[Web] 🛑 STOP signal diterima. Set cancelled flag...")
     scraping_state["cancelled"] = True
-    
-    # Tunggu sebentar untuk process cleanup
-    import time
-    time.sleep(1)
-    
-    if scraping_state["active"]:
-        print("[Web] ⚠️  Force killing Chrome process...")
-        os.system("taskkill /F /IM chrome.exe 2>nul")
-    
-    scraping_state["active"] = False
+    print("[Web] ✅ Flag cancelled=True. Scraper akan berhenti di checkpoint berikutnya...")
     
     return jsonify({
-        "status": "stopped",
-        "message": "Scraping dihentikan"
+        "status": "stopping",
+        "message": "Scraping akan dihentikan (graceful shutdown)"
     }), 200
 
 @app.route("/api/download/<format>", methods=["POST"])

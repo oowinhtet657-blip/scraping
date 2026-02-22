@@ -262,29 +262,57 @@ class FBGroupScraper:
             print("[Scraper] ⚠️  Scraping dibatalkan sebelum dimulai")
             return []
         
+        print("[Scraper] Starting Playwright...")
         async with async_playwright() as p:
             port = self.config["debug_port"]
 
             if self._is_debug_port_open(port):
                 print(f"[Browser] ✅ Chrome terdeteksi di port {port}. Konek langsung...")
-                browser = await p.chromium.connect_over_cdp(f"http://localhost:{port}")
+                try:
+                    browser = await p.chromium.connect_over_cdp(f"http://localhost:{port}")
+                    print(f"[Browser] ✅ CDP connection successful")
+                except Exception as e:
+                    print(f"[Browser] ❌ CDP connection failed: {e}")
+                    raise Exception(f"Gagal connect ke Chrome debug port {port}: {e}")
             else:
-                print(f"[Browser] Chrome belum terbuka dengan debug port.")
-                print(f"[Browser] Membuka Chrome dengan debug port {port}...")
+                print(f"[Browser] Chrome belum terbuka dengan debug port {port}.")
+                print(f"[Browser] Launching Chrome dengan debug port {port}...")
                 self._launch_chrome_with_debug_port(port)
                 await self._wait_for_debug_port(port)
-                browser = await p.chromium.connect_over_cdp(f"http://localhost:{port}")
+                print(f"[Browser] Connecting to Chrome via CDP...")
+                try:
+                    browser = await p.chromium.connect_over_cdp(f"http://localhost:{port}")
+                    print(f"[Browser] ✅ CDP connection successful")
+                except Exception as e:
+                    print(f"[Browser] ❌ CDP connection failed: {e}")
+                    raise Exception(f"Gagal connect ke Chrome setelah launch: {e}")
 
-            context = browser.contexts[0] if browser.contexts else await browser.new_context()
+            try:
+                context = browser.contexts[0] if browser.contexts else await browser.new_context()
+                print(f"[Browser] ✅ Browser context ready")
+            except Exception as e:
+                print(f"[Browser] ❌ Gagal create browser context: {e}")
+                raise Exception(f"Gagal create browser context: {e}")
             
             # ✅ LOOP: Scrape setiap grup berurutan
             all_posts = []
             for idx, group in enumerate(self.config["groups"], 1):
+                # Check if cancelled before scraping each group
+                if self.scraping_state.get("cancelled"):
+                    print(f"\n[Scraper] ⚠️  Scraping dibatalkan oleh user (sebelum grup #{idx})")
+                    break
+                
                 print(f"\n{'='*60}")
                 print(f"[{idx}/{len(self.config['groups'])}] Mulai scraping: {group['name']}")
                 print(f"{'='*60}\n")
 
-                page = context.pages[0] if context.pages else await context.new_page()
+                try:
+                    page = context.pages[0] if context.pages else await context.new_page()
+                    print(f"[Page] Page/tab ready")
+                except Exception as e:
+                    print(f"[Page] ❌ Gagal create/get page: {e}")
+                    raise Exception(f"Gagal create page: {e}")
+                
                 self.config["group_url"] = group["url"]
                 self.config["max_posts"] = group["max_posts"]
                 self.posts = []  
@@ -482,13 +510,41 @@ class FBGroupScraper:
         if not url or url == "https://www.facebook.com/groups/#" or "#" == url.split("/")[-1]:
             raise ValueError(f"URL grup tidak valid: {url}. Format yang benar: https://www.facebook.com/groups/[GROUP_ID]")
         
+        print(f"[Scraper] [DEBUG] Current page URL sebelum navigate: {page.url}")
+        print(f"[Navigation] Attempting to navigate to: {url}")
+        
         try:
-            # Navigate dengan timeout 30 detik untuk mencegah stuck
+            # Try dengan multiple wait_until strategies
+            print(f"[Navigation] Waiting for domcontentloaded (timeout: 30s)...")
             await page.goto(url, wait_until="domcontentloaded", timeout=30000)
             print(f"[Scraper] ✅ Berhasil membuka halaman grup")
+            print(f"[Scraper] [DEBUG] Current page URL setelah navigate: {page.url}")
+            
+        except TimeoutError as te:
+            print(f"[Scraper] ⏱️  TIMEOUT: Gagal navigate dalam 30 detik ke {url}")
+            print(f"[Scraper] [DEBUG] Error details: {str(te)}")
+            print(f"[Scraper] [DEBUG] Saat timeout - URL halaman: {page.url}")
+            raise Exception(f"Timeout saat membuka grup ({str(te)}). Grup mungkin tidak exist atau private.")
+            
         except Exception as e:
             print(f"[Scraper] ❌ Gagal navigate ke {url}")
-            raise Exception(f"Gagal membuka grup. URL mungkin tidak valid atau halaman tidak loading. Error: {str(e)}")
+            print(f"[Scraper] [DEBUG] Error type: {type(e).__name__}")
+            print(f"[Scraper] [DEBUG] Error message: {str(e)}")
+            print(f"[Scraper] [DEBUG] Current page URL saat error: {page.url}")
+            
+            # Try to get page content untuk debugging
+            try:
+                content = await page.content()
+                if "not found" in content.lower() or "404" in content.lower():
+                    raise Exception(f"Grup tidak ditemukan (404). URL: {url}")
+                elif "login" in content.lower():
+                    raise Exception(f"Belum login ke Facebook atau session expired. Login pertama sebelum scraping.")
+                elif "private" in content.lower() or "restricted" in content.lower():
+                    raise Exception(f"Grup ini private atau restricted. Anda tidak punya akses.")
+            except:
+                pass
+            
+            raise Exception(f"Gagal membuka grup: {str(e)}")
         
         await self._human_delay(3, 5)
 
