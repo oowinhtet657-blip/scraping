@@ -771,12 +771,29 @@
 
         // Reset button
         document.getElementById('btnReset').addEventListener('click', () => {
-            document.getElementById('groupUrl').value = 'https://www.facebook.com/groups/1262071423858059?locale=id_ID';
+            // Reset form fields
+            document.getElementById('groupUrl').value = 'https://www.facebook.com/groups/#?locale=id_ID';
             document.getElementById('maxPosts').value = 100;
             document.getElementById('debugPort').value = 9222;
             document.getElementById('exportName').value = 'scrape_results';
-            clearStatus();
+            
+            // Clear status
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.className = 'status';
+            statusEl.innerHTML = '';
+            
+            // Clear results
+            currentResults = [];
+            terminalLines = [];
+            
+            // Hide results card
             document.getElementById('resultsCard').classList.remove('show');
+            
+            // Reset button state
+            document.getElementById('btnScrape').disabled = false;
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
         // Download Excel
