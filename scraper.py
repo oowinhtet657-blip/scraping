@@ -81,7 +81,7 @@ CONFIG = {
     "groups": [
         {
             "name": "1262071423858059",
-            "url": "https://www.facebook.com/groups/#?locale=id_ID",
+            "url": "https://www.facebook.com/groups/1262071423858059?locale=id_ID",
             "max_posts": 400
         },
         
@@ -250,12 +250,18 @@ class ExcelExporter:
         print(f"[Excel] Tersimpan: {filepath}")
 
 class FBGroupScraper:
-    def __init__(self, config: dict):
+    def __init__(self, config: dict, scraping_state: dict = None):
         self.config = config
         self.posts: list[dict] = []
+        self.scraping_state = scraping_state or {}  # For cancellation support
         Path(config["output_dir"]).mkdir(exist_ok=True)
 
     async def run(self):
+        # Check if cancelled before starting
+        if self.scraping_state.get("cancelled"):
+            print("[Scraper] ⚠️  Scraping dibatalkan sebelum dimulai")
+            return []
+        
         async with async_playwright() as p:
             port = self.config["debug_port"]
 
@@ -501,6 +507,11 @@ class FBGroupScraper:
         print(f"[Scraper] Target: {self.config['max_posts']} postingan. Mulai scroll...")
 
         while len(self.posts) < self.config["max_posts"]:
+            
+            # Check if user requested stop
+            if self.scraping_state.get("cancelled"):
+                print("[Scraper] ⚠️  Scraping dibatalkan oleh user (di tengah scroll)")
+                break
 
             clicked = True
             total_clicks = 0

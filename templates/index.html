@@ -752,8 +752,8 @@
                 return;
             }
 
-            if (maxPosts < 1 || maxPosts > 500) {
-                setStatus('Max posts harus 1-500', 'error');
+            if (maxPosts < 1 || maxPosts > 1000) {
+                setStatus('Max posts harus 1-1000', 'error');
                 return;
             }
 
@@ -807,8 +807,10 @@
 
             } catch (err) {
                 if (err.name === 'AbortError') {
-                    setStatus('Scraping dihentikan oleh user', 'stopped');
+                    addTerminalLine('[STOP] Scraping dihentikan oleh user');
+                    setStatus('Scraping dihentikan', 'stopped');
                 } else {
+                    addTerminalLine('[ERROR] ' + err.message);
                     setStatus(err.message, 'error');
                 }
             } finally {
@@ -853,10 +855,29 @@
         });
 
         // Stop button
-        document.getElementById('btnStop').addEventListener('click', () => {
+        document.getElementById('btnStop').addEventListener('click', async () => {
             if (scrapeAbortController) {
+                // Send stop signal ke backend
+                try {
+                    const response = await fetch('/api/stop', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    
+                    const data = await response.json();
+                    console.log('[Frontend] Stop response:', data);
+                    
+                    if (response.ok) {
+                        addTerminalLine('[STOP] Stop signal dikirim ke server');
+                        addTerminalLine('[STOP] Menghentikan scraping...');
+                    }
+                } catch (err) {
+                    console.error('[Frontend] Error sending stop signal:', err);
+                    addTerminalLine('[ERROR] Gagal mengirim stop signal');
+                }
+                
+                // Abort fetch juga dari sisi client
                 scrapeAbortController.abort();
-                addTerminalLine('[STOP] Scraping stopped by user');
             }
         });
 
