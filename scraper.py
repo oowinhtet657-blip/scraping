@@ -470,7 +470,20 @@ class FBGroupScraper:
 
     async def _scrape_group(self, page):
         print(f"[Scraper] Membuka grup: {self.config['group_url']}")
-        await page.goto(self.config["group_url"], wait_until="domcontentloaded")
+        
+        # Validate URL format
+        url = self.config['group_url'].strip()
+        if not url or url == "https://www.facebook.com/groups/#" or "#" == url.split("/")[-1]:
+            raise ValueError(f"URL grup tidak valid: {url}. Format yang benar: https://www.facebook.com/groups/[GROUP_ID]")
+        
+        try:
+            # Navigate dengan timeout 30 detik untuk mencegah stuck
+            await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+            print(f"[Scraper] ✅ Berhasil membuka halaman grup")
+        except Exception as e:
+            print(f"[Scraper] ❌ Gagal navigate ke {url}")
+            raise Exception(f"Gagal membuka grup. URL mungkin tidak valid atau halaman tidak loading. Error: {str(e)}")
+        
         await self._human_delay(3, 5)
 
         try:

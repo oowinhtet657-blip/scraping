@@ -494,10 +494,10 @@
                     <input 
                         type="text" 
                         id="groupUrl" 
-                        placeholder="https://www.facebook.com/groups/1262071423858059"
-                        value="https://www.facebook.com/groups/#?locale=id_ID"
+                        placeholder="https://www.facebook.com/groups/1262071423858059?locale=id_ID"
+                        value=""
                     >
-                    <div class="helper-text">Pastikan Chrome sudah login & grup terbuka di browser</div>
+                    <div class="helper-text">⚠️ Masukkan URL grup yang valid! Contoh: https://www.facebook.com/groups/1262071423858059</div>
                 </div>
 
                 <div class="input-group">
@@ -742,7 +742,13 @@
             const debugPort = parseInt(document.getElementById('debugPort').value);
 
             if (!url) {
-                setStatus('URL tidak boleh kosong', 'error');
+                setStatus('⚠️ URL tidak boleh kosong! Masukkan URL grup Facebook yang valid.', 'error');
+                return;
+            }
+
+            // Validate URL format
+            if (!url.includes("facebook.com/groups/")) {
+                setStatus('⚠️ URL tidak valid! Format: https://www.facebook.com/groups/[GROUP_ID]', 'error');
                 return;
             }
 
@@ -821,7 +827,7 @@
             }
 
             // Reset form fields
-            document.getElementById('groupUrl').value = 'https://www.facebook.com/groups/#?locale=id_ID';
+            document.getElementById('groupUrl').value = '';
             document.getElementById('maxPosts').value = 100;
             document.getElementById('debugPort').value = 9222;
             document.getElementById('exportName').value = 'scrape_results';

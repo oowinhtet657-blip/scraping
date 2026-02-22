@@ -56,6 +56,13 @@ def scrape():
         # Validasi
         if not url:
             return jsonify({"error": "URL tidak boleh kosong"}), 400
+        
+        # Validasi format URL Facebook Group
+        if "facebook.com/groups/" not in url or ("#" in url and url.endswith("#")):
+            return jsonify({
+                "error": "URL tidak valid! Format yang benar: https://www.facebook.com/groups/[GROUP_ID]"
+            }), 400
+        
         if max_posts < 1 or max_posts > 500:
             return jsonify({"error": "Max posts harus 1-500"}), 400
 
